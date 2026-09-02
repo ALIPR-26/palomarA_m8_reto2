@@ -1,0 +1,410 @@
+---
+title: "Dashboard: Gapminder: relación de indicadores socioeconómicos"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: scroll
+runtime: shiny 
+---
+
+```{r setup, include=FALSE}
+
+library(flexdashboard)
+library(shiny)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library(scales)
+library(here)
+
+# Cargamos la base de datos depurada desde la carpeta Datos
+data_final <- read_csv(
+  here("Datos", "Base de datos depurada", "data_final.csv"),
+  show_col_types = FALSE
+)
+
+# Aseguramos que el año sea numérico
+data_final$year <- as.numeric(data_final$year)
+
+```
+
+
+
+Row {data-height=550}
+-----------------------------------------------------------------------
+
+### Relación entre PIB per cápita, esperanza de vida y fertilidad
+
+```{r}
+
+
+selectInput(
+  inputId = "year_bubble",
+  label = "Año:",
+  choices = sort(unique(data_final$year), decreasing = TRUE),
+  selected = max(data_final$year)
+)
+
+renderPlotly({
+
+  datos_bubble <- data_final %>%
+    filter(year == input$year_bubble)
+
+  p <- ggplot(
+    datos_bubble,
+    aes(
+      x = gdp,
+      y = life,
+      size = population,
+      color = babies,
+      text = paste0(
+        "<b>", name, "</b>",
+        "<br>GDP per capita: ", comma(round(gdp)),
+        "<br>Esperanza de vida: ", round(life, 1), " años",
+        "<br>Población: ", comma(population),
+        "<br>Hijos por mujer: ", round(babies, 2)
+      )
+    )
+  ) +
+
+    geom_point(alpha = 0.75) +
+
+    # GDP per capita en escala logarítmica
+    scale_x_log10(
+      labels = comma
+    ) +
+
+    # Tamaño de las burbujas según población
+    scale_size_continuous(
+      range = c(3, 15),
+      labels = comma
+    ) +
+
+    # Escala Viridis para hijos por mujer
+    scale_color_viridis_c(
+      option = "viridis",
+      direction = -1,
+      name = "Hijos por mujer"
+    ) +
+
+    labs(
+      x = NULL,
+      y = "Esperanza de vida (años)",
+      size = "Población"
+    ) +
+
+    theme_minimal()
+
+  ggplotly(
+    p,
+    tooltip = "text"
+  ) %>%
+
+    layout(
+      
+      # Dejamos espacio suficiente debajo del gráfico
+      margin = list(
+        l = 70,
+        r = 40,
+        b = 130,
+        t = 20
+      ),
+
+      # Título del eje X directamente en Plotly
+      xaxis = list(
+        title = list(
+          text = "GDP per capita",
+          font = list(size = 16)
+        ),
+        automargin = TRUE
+      ),
+
+      # Título del eje Y
+      yaxis = list(
+        title = list(
+          text = "Esperanza de vida (años)",
+          font = list(size = 16)
+        ),
+        automargin = TRUE
+      )
+    )
+
+})
+
+
+
+
+```
+
+Row {data-height=650}
+-----------------------------------------------------------------------
+
+### Comparación del PIB per cápita entre países
+
+```{r}
+
+
+# Selector de año
+selectInput(
+  inputId = "year_lollipop",
+  label = "Año:",
+  choices = sort(unique(data_final$year), decreasing = TRUE),
+  selected = max(data_final$year)
+)
+
+# Selector de países: máximo 10
+selectizeInput(
+  inputId = "countries_lollipop",
+  label = "Países:",
+  choices = sort(unique(data_final$name)),
+  selected = c("France", "Germany", "Spain"),
+  multiple = TRUE,
+  options = list(
+    maxItems = 10,
+    placeholder = "Selecciona hasta 10 países"
+  )
+)
+
+renderPlotly({
+
+  datos_lollipop <- data_final %>%
+    filter(
+      year == input$year_lollipop,
+      name %in% input$countries_lollipop
+    ) %>%
+    arrange(gdp)
+
+  # Punto inicial de las líneas
+  inicio <- min(data_final$gdp, na.rm = TRUE)
+
+  p <- ggplot(
+    datos_lollipop,
+    aes(
+      y = reorder(name, gdp),
+      x = gdp,
+      color = babies,
+      text = paste0(
+        "<b>", name, "</b>",
+        "<br>GDP per capita: ", comma(round(gdp)),
+        "<br>Esperanza de vida: ", round(life, 1), " años",
+        "<br>Hijos por mujer: ", round(babies, 2)
+      )
+    )
+  ) +
+
+    # Rayas del lollipop
+    geom_segment(
+      aes(
+        x = inicio,
+        xend = gdp,
+        yend = reorder(name, gdp)
+      ),
+      linewidth = 0.8
+    ) +
+
+    # Punto final
+    geom_point(
+      size = 5
+    ) +
+
+    # TODO el rango disponible de GDP per capita
+    scale_x_log10(
+      limits = range(data_final$gdp, na.rm = TRUE),
+      labels = comma,
+      expand = expansion(mult = c(0.02, 0.03))
+    ) +
+
+    scale_color_viridis_c(
+      option = "viridis",
+      direction = -1,
+      name = "Hijos por mujer"
+    ) +
+
+    labs(
+      x = "GDP per capita",
+      y = NULL
+    ) +
+
+    theme_minimal() +
+
+    theme(
+      axis.text.y = element_text(size = 9),
+      axis.text.x = element_text(size = 8),
+      axis.title.x = element_text(size = 10),
+
+      legend.title = element_text(size = 9),
+      legend.text = element_text(size = 8),
+
+      plot.margin = margin(
+        t = 5,
+        r = 5,
+        b = 55,
+        l = 5
+      )
+    )
+
+ ggplotly(
+  p,
+  tooltip = "text"
+) %>%
+  layout(
+    height = 400,
+
+    margin = list(
+      l = 60,
+      r = 90,
+      b = 95,
+      t = 5
+    ),
+
+    legend = list(
+      x = 1.02,
+      y = 0.5
+    )
+  )
+
+})
+```
+
+### Evolución de los indicadores por país
+
+```{r}
+
+
+
+selectInput(
+  inputId = "country_line",
+  label = "País:",
+  choices = sort(unique(data_final$name)),
+  selected = "Spain"
+)
+
+selectInput(
+  inputId = "indicator_line",
+  label = "Indicador:",
+  choices = c(
+    "Population (habitantes)" = "population",
+    "GDP per capita" = "gdp",
+    "Esperanza de vida (años)" = "life",
+    "Hijos por mujer" = "babies"
+  ),
+  selected = "population"
+)
+
+renderPlotly({
+
+  # Filtrar el país seleccionado
+  datos_line <- data_final %>%
+    filter(name == input$country_line)
+
+  # Indicador seleccionado
+  indicador <- input$indicator_line
+
+  # Nombre del indicador
+  nombre_indicador <- case_when(
+    indicador == "population" ~ "Population (habitantes)",
+    indicador == "gdp" ~ "GDP per capita",
+    indicador == "life" ~ "Esperanza de vida (años)",
+    indicador == "babies" ~ "Hijos por mujer"
+  )
+
+  # Crear valor formateado para el tooltip
+  datos_line <- datos_line %>%
+    mutate(
+      valor_tooltip = case_when(
+        indicador == "population" ~ 
+          comma(round(population)),
+        
+        indicador == "gdp" ~ 
+          comma(round(gdp)),
+        
+        indicador == "life" ~ 
+          paste0(round(life, 1), " años"),
+        
+        indicador == "babies" ~ 
+          as.character(round(babies, 2))
+      )
+    )
+
+  # Crear texto del tooltip
+  datos_line <- datos_line %>%
+    mutate(
+      tooltip_line = paste0(
+        "<b>", name, "</b>",
+        "<br>Año: ", year,
+        "<br>", nombre_indicador, ": ", valor_tooltip
+      )
+    )
+
+  # Crear gráfico
+  p <- ggplot(
+    datos_line,
+    aes(
+      x = year,
+      y = .data[[indicador]],
+      text = tooltip_line
+    )
+  ) +
+
+    # Línea de evolución
+    geom_line(
+      linewidth = 1.2,
+      color = "#3B7F8C"
+    ) +
+
+    # Puntos de cada año
+    geom_point(
+      size = 3,
+      color = "#3B7F8C"
+    ) +
+
+    labs(
+      x = NULL,
+      y = nombre_indicador
+    ) +
+
+    theme_minimal() +
+
+    theme(
+      axis.title.y = element_text(size = 13),
+      axis.text = element_text(size = 10)
+    )
+
+  # Convertir a Plotly
+  ggplotly(
+    p,
+    tooltip = "text"
+  ) %>%
+
+    layout(
+
+      margin = list(
+        l = 70,
+        r = 30,
+        b = 60,
+        t = 20
+      ),
+
+      xaxis = list(
+        title = list(
+          text = "Año",
+          font = list(size = 14)
+        ),
+        automargin = TRUE
+      ),
+
+      yaxis = list(
+        title = list(
+          text = nombre_indicador,
+          font = list(size = 14)
+        ),
+        automargin = TRUE
+      ),
+
+      height = 400
+    )
+
+})
+```
+
