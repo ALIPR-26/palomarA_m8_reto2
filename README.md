@@ -109,6 +109,14 @@ Entre las visualizaciones realizadas se incluye un gráfico de evolución tempor
 
 A partir de los resultados obtenidos en el análisis exploratorio se desarrolló un dashboard interactivo que permite explorar los indicadores y comparar diferentes años y territorios.
 
+Para ejecutarlo:
+
+1. Abrir el proyecto `palomarA_m8_reto2.Rproj` en RStudio.
+2. Abrir el archivo del dashboard situado en la carpeta `Dashboard`.
+3. Ejecutar la aplicación desde RStudio.
+
+El dashboard permite explorar los indicadores seleccionados y analizar su evolución y las relaciones entre ellos mediante diferentes elementos interactivos.
+
 ### 6. Informe técnico
 
 Se elaboró un informe técnico mediante knitr en el que se presentan los principales resultados del análisis, incluyendo tablas, gráficos e interpretación.
