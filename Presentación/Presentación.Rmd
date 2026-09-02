@@ -53,6 +53,40 @@ socioeconómicos y demográficos a nivel mundial durante el periodo
 - Se realizó un **análisis exploratorio (EDA)** para estudiar las distribuciones, evolución y relaciones entre variables.
 - A partir del EDA se desarrolló un **dashboard interactivo** para explorar los resultados.
 
+## Tabla resumen
+
+```{r tabla-resumen, echo=FALSE}
+
+tabla <- data_final %>%
+  filter(year == 2019) %>%
+  summarise(
+    `PIB per cápita` = mean(gdp, na.rm = TRUE),
+    `Esperanza de vida (años)` = mean(life, na.rm = TRUE),
+    `Población` = mean(population, na.rm = TRUE),
+    `Hijos por mujer` = mean(babies, na.rm = TRUE)
+  ) %>%
+  tidyr::pivot_longer(
+    cols = everything(),
+    names_to = "Indicador",
+    values_to = "Media"
+  )
+
+tabla$Media <- c(
+  scales::comma(round(tabla$Media[1], 0)),
+  scales::comma(round(tabla$Media[2], 0)),
+  paste0(round(tabla$Media[3] / 1000000, 1), " M"),
+  round(tabla$Media[4], 2)
+)
+
+knitr::kable(
+  tabla,
+  col.names = c("Indicador", "Media")
+)
+
+```
+
+Los valores corresponden a la **media de los territorios en 2019**.
+
 ## Evolución temporal
 
 Se analiza la evolución de los cuatro indicadores principales entre 1990 y 2019.
