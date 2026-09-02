@@ -1,0 +1,180 @@
+---
+title: "Indicadores socioeconómicos y demográficos- Gapminder"
+author: "A. Palomar"
+date: "2026-09-02"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+
+library(readr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(scales)
+library(here)
+library(knitr)
+library(plotly)
+
+knitr::opts_chunk$set(echo = FALSE)
+
+data_final <- read_csv(
+  here("Datos", "Base de datos depurada", "data_final.csv"),
+  show_col_types = FALSE
+)
+
+data_final$year <- as.numeric(data_final$year)
+
+```
+
+
+## Objetivos
+
+**Objetivo principal**
+
+Analizar la evolución y la relación entre diferentes indicadores
+socioeconómicos y demográficos a nivel mundial durante el periodo
+1990--2019, utilizando datos de Gapminder.
+
+**Objetivos específicos**
+
+- Analizar la evolución temporal de los indicadores.
+- Estudiar la relación entre PIB per cápita y esperanza de vida.
+- Analizar la relación entre fertilidad y esperanza de vida.
+- Estudiar la relación entre PIB per cápita y fertilidad.
+- Comparar los indicadores entre diferentes territorios.
+
+## Datos y metodología
+
+- Datos procedentes de **Gapminder**.
+- Se partió de **4 bases de datos**, correspondientes a los indicadores seleccionados.
+- Las bases se **integraron y depuraron** para obtener un único conjunto de datos.
+- El conjunto final contiene `r n_distinct(data_final$name)` territorios y abarca de `r min(data_final$year)` a `r max(data_final$year)`.
+- Se realizó un **análisis exploratorio (EDA)** para estudiar las distribuciones, evolución y relaciones entre variables.
+- A partir del EDA se desarrolló un **dashboard interactivo** para explorar los resultados.
+
+## Evolución temporal
+
+Se analiza la evolución de los cuatro indicadores principales entre 1990 y 2019.
+
+```{r grafico-evolucion, echo=FALSE, fig.width=6.5, fig.height=2.8}
+
+datos_evolucion <- data_final %>%
+  group_by(year) %>%
+  summarise(
+    esperanza_vida = mean(life, na.rm = TRUE),
+    gdp = mean(gdp, na.rm = TRUE),
+    poblacion = mean(population, na.rm = TRUE),
+    fertilidad = mean(babies, na.rm = TRUE)
+  )
+
+datos_largos <- datos_evolucion %>%
+  tidyr::pivot_longer(
+    cols = c(esperanza_vida, gdp, poblacion, fertilidad),
+    names_to = "indicador",
+    values_to = "valor"
+  )
+
+datos_largos$indicador <- factor(
+  datos_largos$indicador,
+  levels = c(
+    "gdp",
+    "esperanza_vida",
+    "poblacion",
+    "fertilidad"
+  ),
+  labels = c(
+    "PIB per cápita",
+    "Esperanza de vida",
+    "Población",
+    "Hijos por mujer"
+  )
+)
+
+ggplot(
+  datos_largos,
+  aes(
+    x = year,
+    y = valor,
+    group = indicador,
+    color = indicador
+  )
+) +
+  geom_line(linewidth = 0.8) +
+  facet_wrap(
+    ~ indicador,
+    scales = "free_y",
+    ncol = 2
+  ) +
+  scale_color_manual(
+    values = c(
+      "PIB per cápita" = "#2C7FB8",
+      "Esperanza de vida" = "#41AB5D",
+      "Población" = "#88419D",
+      "Hijos por mujer" = "#E6550D"
+    )
+  ) +
+  labs(
+    x = "Año",
+    y = NULL
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    strip.text = element_text(size = 8, face = "bold"),
+    axis.text = element_text(size = 6),
+    axis.title.x = element_text(size = 7),
+    plot.margin = margin(2, 2, 2, 2)
+  )
+
+```
+
+- **PIB per cápita, esperanza de vida y población:** tendencia creciente.
+- **Hijos por mujer:** tendencia decreciente.
+
+## Relación entre indicadores
+
+
+```{r bubble-plot, echo=FALSE, fig.width=7, fig.height=5}
+
+datos_bubble <- data_final %>%
+  filter(year == 2019)
+
+ggplot(
+  datos_bubble,
+  aes(
+    x = gdp,
+    y = life,
+    size = population,
+    color = babies
+  )
+) +
+  geom_point(alpha = 0.75) +
+  scale_x_log10(
+    labels = scales::comma
+  ) +
+  scale_size_continuous(
+    range = c(3, 15),
+    labels = scales::comma
+  ) +
+  scale_color_viridis_c(
+    option = "viridis",
+    direction = -1,
+    name = "Hijos por mujer"
+  ) +
+  labs(
+    x = "PIB per cápita",
+    y = "Esperanza de vida (años)",
+    size = "Población"
+  ) +
+  theme_minimal()
+```
+
+## Conclusiones
+
+- Entre 1990 y 2019, el **PIB per cápita**, la **esperanza de vida** y la **población** aumentan.
+- El número de **hijos por mujer disminuye** durante el periodo.
+- En 2019 se observa una **relación positiva entre PIB per cápita y esperanza de vida**.
+- Los territorios con menor PIB y esperanza de vida presentan, en general, **mayores niveles de fertilidad**.
+
+El **dashboard interactivo** permite profundizar en estos resultados y comparar los indicadores entre diferentes años y territorios.
