@@ -13,6 +13,10 @@ El análisis se realiza utilizando datos procedentes de Gapminder y se centra en
 - Población.
 - Hijos por mujer.
 
+Las bases de datos originales se encuentran disponibles en:
+
+[Gapminder Data](https://www.gapminder.org/data/)
+
 El proyecto incluye un proceso de importación y depuración de los datos, un análisis exploratorio (EDA), un dashboard interactivo y la elaboración de un informe técnico y una presentación mediante R Markdown.
 
 ---
