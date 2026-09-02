@@ -62,7 +62,7 @@ El repositorio está organizado de la siguiente manera:
    └── Bases de datos originales y datos depurados
 
 📁 Informe
-   └── Informe técnico realizado mediante R Markdown / knitr
+   └── Informe técnico realizado mediante knitr
 
 📁 Presentación
    └── Presentación realizada mediante R Markdown
@@ -107,7 +107,7 @@ A partir de los resultados obtenidos en el análisis exploratorio se desarrolló
 
 ### 6. Informe técnico
 
-Se elaboró un informe técnico mediante R Markdown y knitr en el que se presentan los principales resultados del análisis, incluyendo tablas, gráficos e interpretación.
+Se elaboró un informe técnico mediante knitr en el que se presentan los principales resultados del análisis, incluyendo tablas, gráficos e interpretación.
 
 ### 7. Presentación
 
@@ -156,7 +156,7 @@ Para reproducir el proyecto:
 3. Instalar los paquetes necesarios si no están instalados.
 4. Ejecutar el código de importación y depuración de los datos.
 5. Ejecutar el código correspondiente al dashboard.
-6. Generar el informe técnico mediante R Markdown.
+6. Generar el informe técnico mediante knitr.
 7. Generar la presentación mediante R Markdown.
 
 Las rutas de los archivos se gestionan mediante el paquete `here`, evitando utilizar rutas absolutas específicas de un ordenador.
@@ -190,4 +190,4 @@ El dashboard permite profundizar en estos resultados y explorar las diferencias 
 
 **Alicia Palomar**
 
-Proyecto realizado como parte del Reto 2 del módulo de Ciencia de Datos.
+Proyecto realizado como parte del Reto 2 del módulo 8 del Master de Behavioural Data Science
