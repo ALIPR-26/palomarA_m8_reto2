@@ -655,3 +655,9 @@ sort(unique(data_final$year))
 # única base y no se presentan valores ausentes ni duplicados.
 # Este conjunto constituye la base de datos depurada que se utilizará
 # para el análisis y el dashboard.
+
+#Guardar la base de datos final en la carpeta Base de datos depurada
+write_csv(
+  data_final,
+  "Datos/Base de datos depurada/data_final.csv"
+)
